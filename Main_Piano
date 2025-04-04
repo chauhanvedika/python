@@ -1,0 +1,116 @@
+import pygame
+
+# Initialize pygame
+pygame.init()
+
+# Constants
+WIDTH, HEIGHT = 900, 400
+WHITE, BLACK, YELLOW, RED, BLUE, LIGHT_BLUE_GREEN, GRAY = (255, 255, 255), (0, 0, 0), (255, 223, 88), (255, 0, 0), (
+135, 206, 250), (173, 216, 230), (200, 200, 200)
+KEY_WIDTH, KEY_HEIGHT = 50, 200
+BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT = 30, 130
+OCTAVE_COUNT = 3
+
+dropdown_options = ["Aroha", "Avroha", "Aalankar"]
+dropdown_index = 0
+
+# Sur labels
+white_sur_labels = ['.r', '.g', '.G', "M'", '.d', '.n', '.N', 'r', 'g', 'G', "M'", 'd', 'n', 'N', 'r.', 'g.', 'G.',
+                    'M', 'd.', 'n.', 'N.']
+black_sur_labels = ['.S', '.R', '.M', "P’", '.D', 'S', 'R', 'M', 'P', 'D', 'S.', 'R.', 'M.', 'P.', 'D.']
+
+# Keyboard mappings
+white_keys_mapping = ['Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
+                      ';', "'"]
+black_keys_mapping = ['E', '3', 'F', '4', 'G', 'H', '7', 'J', 'K', 'L', ';', "'", "\"", ",", "."]
+
+pressed_keys = set()
+pressed_black_keys = set()
+
+
+# Draw mode selection UI
+def draw_mode_selection(screen):
+    dropdown_font = pygame.font.Font(None, 35)
+    pygame.draw.rect(screen, GRAY, (WIDTH // 2 - 100, 10, 200, 30))
+    text = dropdown_font.render(f"Pattern: {dropdown_options[dropdown_index]}", True, BLACK)
+    screen.blit(text, (WIDTH // 2 - 90, 15))
+    pygame.draw.polygon(screen, BLACK,
+                        [(WIDTH // 2 + 85, 20), (WIDTH // 2 + 105, 10), (WIDTH // 2 + 125, 20)])  # Down arrow
+
+
+# Draw keyboard UI
+def draw_keys(screen):
+    font = pygame.font.Font(None, 30)
+    labels = ["Mandra Saptak", "Madh Saptak", "Taar Saptak"]
+    colors = [YELLOW, RED, BLUE]
+
+    for i in range(OCTAVE_COUNT):
+        pygame.draw.rect(screen, colors[i], (i * WIDTH // 3, 40, WIDTH // 3, 40))
+        text = font.render(labels[i], True, BLACK)
+        screen.blit(text, (i * WIDTH // 3 + 20, 50))
+
+    for i in range(len(white_sur_labels)):
+        color = LIGHT_BLUE_GREEN if i in pressed_keys else WHITE
+        pygame.draw.rect(screen, color, (i * KEY_WIDTH, 100, KEY_WIDTH, KEY_HEIGHT))
+        pygame.draw.rect(screen, BLACK, (i * KEY_WIDTH, 100, KEY_WIDTH, KEY_HEIGHT), 3)
+        label = font.render(white_sur_labels[i], True, BLACK)
+        screen.blit(label, (i * KEY_WIDTH + 10, 250))
+
+        if i < len(white_keys_mapping):
+            key_label = font.render(white_keys_mapping[i], True, BLACK)
+            screen.blit(key_label, (i * KEY_WIDTH + 15, 310))
+
+    for i in range(len(black_sur_labels)):
+        x = (i * KEY_WIDTH + 35)
+        color = LIGHT_BLUE_GREEN if i in pressed_black_keys else BLACK
+        pygame.draw.rect(screen, color, (x, 100, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT))
+        pygame.draw.rect(screen, BLACK, (x, 100, BLACK_KEY_WIDTH, BLACK_KEY_HEIGHT), 3)
+        label = font.render(black_sur_labels[i], True, WHITE)
+        screen.blit(label, (x + 5, 120))
+
+        if i < len(black_keys_mapping):
+            key_label = font.render(black_keys_mapping[i], True, BLACK)
+            screen.blit(key_label, (x + 5, 80))
+
+
+# Main function
+def main():
+    global dropdown_index, pressed_keys, pressed_black_keys
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Pygame Saptak Keyboard UI")
+    clock = pygame.time.Clock()
+
+    running = True
+    while running:
+        screen.fill(WHITE)
+        draw_mode_selection(screen)
+        draw_keys(screen)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    dropdown_index = (dropdown_index + 1) % len(dropdown_options)
+                elif event.key == pygame.K_UP:
+                    dropdown_index = (dropdown_index - 1) % len(dropdown_options)
+                elif event.key in [pygame.key.key_code(k.lower()) for k in white_keys_mapping]:
+                    pressed_keys.add([pygame.key.key_code(k.lower()) for k in white_keys_mapping].index(event.key))
+                elif event.key in [pygame.key.key_code(k.lower()) for k in black_keys_mapping]:
+                    pressed_black_keys.add(
+                        [pygame.key.key_code(k.lower()) for k in black_keys_mapping].index(event.key))
+            elif event.type == pygame.KEYUP:
+                if event.key in [pygame.key.key_code(k.lower()) for k in white_keys_mapping]:
+                    pressed_keys.discard([pygame.key.key_code(k.lower()) for k in white_keys_mapping].index(event.key))
+                elif event.key in [pygame.key.key_code(k.lower()) for k in black_keys_mapping]:
+                    pressed_black_keys.discard(
+                        [pygame.key.key_code(k.lower()) for k in black_keys_mapping].index(event.key))
+
+        pygame.display.flip()
+        clock.tick(30)
+
+    pygame.quit()
+
+
+if __name__ == "__main__":
+    main()
